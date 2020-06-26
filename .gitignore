@@ -127,3 +127,12 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# adding playground for active development
+playground/
+
+# vscode settings 
+.vscode
+
+# ignore the dataset because it's too heavy
+dataset/
