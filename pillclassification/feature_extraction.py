@@ -6,6 +6,25 @@ from collections import Counter
 
 
 def feature_extraction(image):
+    """
+    Extracts the features from an image.
+
+    The pipeline is:
+        - Segment the image using a superpixel method and its Region Adjacency Graph.
+        - Get the most likely ROI using an heuristic metric.
+        - Extract the features from the ROI.
+
+    Parameters
+    ----------
+    image: ndarray
+
+    Returns
+    -------
+    hu: array
+        Hu moments of the (hopefully right) region.
+    color: array
+        The dominant color in the (hopefully right) region as RGB.
+    """
     sp_labels = superpixel(image)
     rag, labels = image_segmentation(image, sp_labels)
     labels_rgb = color.label2rgb(labels, image, kind='avg', bg_label=0)
