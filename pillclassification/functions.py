@@ -162,3 +162,18 @@ def image_segmentation(image, labels, method='color'):
         return merge_hier_boundary(labels, edges, image)
     elif method == 'color':
         return merge_hier_color(labels, image)
+
+def crop_center(image: np.ndarray, crop_scale: float) -> np.ndarray:
+    ''' It returns the image cropped maintaing the same center and changing 
+        the size of the crop_scale '''
+    
+    if crop_scale < 0 or crop_scale > 1.:
+        raise ValueError('The crop scale must be less positive and less then 1')
+    
+    y,x,d = image.shape
+    cropx = int(x * crop_scale)
+    cropy = int(y * crop_scale)
+    startx = int(x/2-(cropx/2))
+    starty = int(y/2-(cropy/2)) - 100 
+
+    return image[starty:starty+cropy,startx:startx+cropx,:]
