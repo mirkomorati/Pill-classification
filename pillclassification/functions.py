@@ -1,4 +1,6 @@
-from skimage import exposure, segmentation, filters, color, util
+from skimage import exposure, segmentation, filters, color, util, img_as_float
+from skimage.transform import resize
+from skimage.io import imread
 from skimage.future import graph
 import numpy as np
 from sklearn.cluster import KMeans
@@ -313,3 +315,58 @@ def crop_center(image: np.ndarray, crop_scale: float) -> np.ndarray:
     starty = int(y/2-(cropy/2)) - 100 
 
     return image[starty:starty+cropy,startx:startx+cropx,:]
+
+
+def generate_image(img, bg):
+    """
+    Generate an image given a segmented pill and a background.
+
+    Randomizes position and scale, adds a fake shadow.
+
+    Paramenters
+    -----------
+    img: ndarray
+    bg: Path
+
+    Returns
+    -------
+    image: ndarray
+    """
+    assert img.shape[-1] == 4
+
+    img = img_as_float(img)
+    img = img[:1500, :]
+
+    width = np.random.randint(200, 250)
+    img = resize(img, (int(img.shape[0] * (width / img.shape[1])), width), anti_aliasing=True)
+    
+    width = 600
+    bg = imread(bg)
+    bg = img_as_float(bg)
+    bg = resize(bg, (int(bg.shape[0] * (width / bg.shape[1])), width), anti_aliasing=True)
+
+    x, y = np.random.randint(50,200, 2)
+    
+    bg_h, bg_w, bg_d = bg.shape
+    img_h, img_w, img_d = img.shape
+
+    shadow = img.copy()
+    shadow[shadow < 1] = 0
+    sigma = np.random.rand() * 10 + 10
+    shadow = filters.gaussian(shadow, sigma=sigma)
+
+    offset_x, offset_y = np.random.randint(0, 15, 2)
+
+    template = np.zeros((bg_h, bg_w, img_d))
+    template_shadow = np.zeros((bg_h, bg_w, img_d))
+    template_shadow[y + offset_y : y + offset_y + img_h, x + offset_x : x + offset_x + img_w, :] = shadow
+    plt.figure()
+    plt.imshow(template_shadow)
+    template[y : y + img_h, x : x + img_w, :] = img
+
+    mask = np.stack([template[:,:,3] for _ in range(3)], axis = 2)
+    inv_mask = 1. - mask
+    # Changing brightness / contrast
+    template[:,:,:3] += np.random.rand() * 0.3 - 0.1 * mask
+    template[:,:,:3] *= (np.random.rand() * 0.5 - 0.2 + 1) * mask
+    return bg[:,:,:3] * inv_mask + template[:,:,:3] * mask - template_shadow[:,:,:3] * inv_mask
