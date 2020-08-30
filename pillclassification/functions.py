@@ -360,8 +360,7 @@ def generate_image(img, bg):
     template = np.zeros((bg_h, bg_w, img_d))
     template_shadow = np.zeros((bg_h, bg_w, img_d))
     template_shadow[y + offset_y : y + offset_y + img_h, x + offset_x : x + offset_x + img_w, :] = shadow
-    plt.figure()
-    plt.imshow(template_shadow)
+
     template[y : y + img_h, x : x + img_w, :] = img
 
     mask = np.stack([template[:,:,3] for _ in range(3)], axis = 2)
